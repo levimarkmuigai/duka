@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+actix-web = "4.13.0"
 askama = "0.15.4"
-axum = "0.8.8"
 dotenvy = "0.15.7"
 serde = { version ="1.0.228", features= ["derive"] }
 sqlx = { version = "0.8.6", features = [
