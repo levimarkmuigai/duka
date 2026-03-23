@@ -8,11 +8,10 @@ pub async fn create_merchent(
 ) -> Result<(), Box<dyn std::error::Error>> {
     sqlx::query!(
         r#"
-    INSERT INTO sellers (id, name, email, password)
-    VALUES($1,$2,$3,$4)
+    INSERT INTO sellers (id,email, password)
+    VALUES($1,$2,$3)
     "#,
         merchant.id.value(),
-        merchant.name,
         merchant.email,
         merchant.password.value(),
     )

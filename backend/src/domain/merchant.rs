@@ -4,9 +4,10 @@ use argon2::{
     Argon2,
     password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Id(Uuid);
 
 impl Id {
@@ -25,7 +26,7 @@ impl From<Uuid> for Id {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Password(String);
 
 impl Password {
@@ -52,28 +53,27 @@ impl TryFrom<String> for Password {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Merchant {
     pub id: Id,
-    pub name: String,
     pub email: String,
     pub password: Password,
 }
 
 impl Merchant {
-    pub fn new(
-        id: Uuid,
-        name: String,
-        email: String,
-        password: String,
-    ) -> Result<Self, Box<dyn Error>> {
+    pub fn new(id: Uuid, email: String, password: String) -> Result<Self, Box<dyn Error>> {
         let hashed_password = Password::hash(password)?;
 
         Ok(Self {
             id: Id::from(id),
-            name,
             email,
             password: Password::try_from(hashed_password)?,
         })
     }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AuthPayload {
+    pub email: String,
+    pub password: String,
 }
