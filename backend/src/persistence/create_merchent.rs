@@ -2,10 +2,7 @@ use sqlx::PgPool;
 
 use crate::domain::merchant::Merchant;
 
-pub async fn create_merchent(
-    pool: PgPool,
-    merchant: Merchant,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn create_merchent(pool: PgPool, merchant: &Merchant) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"
     INSERT INTO sellers (id,email, password)

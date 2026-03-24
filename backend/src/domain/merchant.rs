@@ -1,4 +1,4 @@
-use std::error::Error;
+use thiserror::Error;
 
 use argon2::{
     Argon2,
@@ -15,8 +15,8 @@ impl Id {
         Uuid::new_v4()
     }
 
-    pub fn value(self) -> Uuid {
-        self.0
+    pub fn value(&self) -> &Uuid {
+        &self.0
     }
 }
 
@@ -29,6 +29,15 @@ impl From<Uuid> for Id {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Password(String);
 
+#[derive(Error, Debug)]
+pub enum PasswordError {
+    #[error("Failed to convert password to struct")]
+    Conversion,
+
+    #[error("Failed to hash password")]
+    Hashing(#[from] argon2::password_hash::Error),
+}
+
 impl Password {
     fn hash(p: String) -> Result<String, argon2::password_hash::Error> {
         let salt = SaltString::generate(&mut OsRng);
@@ -40,13 +49,13 @@ impl Password {
         Ok(hashed_password)
     }
 
-    pub fn value(self) -> String {
-        self.0
+    pub fn value(&self) -> &String {
+        &self.0
     }
 }
 
 impl TryFrom<String> for Password {
-    type Error = &'static str;
+    type Error = PasswordError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Ok(Self(value))
@@ -61,7 +70,7 @@ pub struct Merchant {
 }
 
 impl Merchant {
-    pub fn new(id: Uuid, email: String, password: String) -> Result<Self, Box<dyn Error>> {
+    pub fn new(id: Uuid, email: String, password: String) -> Result<Self, PasswordError> {
         let hashed_password = Password::hash(password)?;
 
         Ok(Self {

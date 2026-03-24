@@ -2,7 +2,7 @@ use std::{env, time::Duration};
 
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
-pub async fn get_pool() -> Result<PgPool, Box<dyn std::error::Error>> {
+pub async fn get_pool() -> Result<PgPool, sqlx::Error> {
     let database_url = env::var("DATABASE_URL").expect("DATABASE URL NOT FOUND");
 
     let pool = PgPoolOptions::new()

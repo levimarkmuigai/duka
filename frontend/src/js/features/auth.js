@@ -16,7 +16,7 @@ export const initAuthForms = () => {
     submitBtn.disable = true;
 
     try {
-      const result = await submitAuthForm(signupForm, 'register');
+      const result = await submitAuthForm(signupForm, 'api/register_merchant');
       console.log('User registered successfully', result);
 
       closeModal(signupModal, 'signup-card');
