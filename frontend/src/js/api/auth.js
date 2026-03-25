@@ -21,7 +21,8 @@ export const submitAuthForm = async (formElement, endpoint) => {
     return await response.json();
 
   } catch (error) {
-    console.error('Failed to post to ${endpoint}:', error);
+    console.error(`Failed to post to ${endpoint}:`, error);
     throw error;
   }
 };
+
