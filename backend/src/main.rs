@@ -2,7 +2,6 @@ use std::net::TcpListener;
 
 use backend::run;
 
-pub mod utils;
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();

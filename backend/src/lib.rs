@@ -2,7 +2,6 @@ use std::net::TcpListener;
 pub mod api;
 pub mod domain;
 pub mod persistence;
-pub mod utils;
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, dev::Server, http::header};
 
