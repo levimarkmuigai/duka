@@ -8,11 +8,11 @@ use sqlx::{PgPool, types::time::OffsetDateTime};
 
 type SessionState = HashMap<String, String>;
 #[derive(Clone, Debug)]
-pub struct PgPoolSession {
+pub struct PgSessionStore {
     pool: sqlx::PgPool,
 }
 
-impl PgPoolSession {
+impl PgSessionStore {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
@@ -35,7 +35,7 @@ pub enum PgSessionError {
     Serde(#[from] serde_json::Error),
 }
 
-impl SessionStore for PgPoolSession {
+impl SessionStore for PgSessionStore {
     fn save(
         &self,
         session_state: SessionState,

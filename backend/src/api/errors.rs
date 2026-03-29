@@ -11,6 +11,9 @@ pub enum Errors {
 
     #[error("Error occured while processing a password")]
     Password(#[from] PasswordError),
+
+    #[error("Failed to hash password")]
+    Hashing(#[from] argon2::password_hash::Error),
 }
 
 impl ResponseError for Errors {
@@ -18,6 +21,7 @@ impl ResponseError for Errors {
         match self {
             Errors::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Errors::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Errors::Hashing(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
