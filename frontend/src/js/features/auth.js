@@ -44,9 +44,11 @@ export const initAuthForms = () => {
 
     try {
       const result = await submitAuthForm(loginForm, 'api/login');
-      console.log('User logged in successfully', result);
-      closeModal(loginModal, 'login-card');
-      alert("Authentication successful");
+
+      if (result.status === 'success') {
+        console.log('User logged in successfully', result);
+        window.location.href = result.redirect;
+      }
     } catch (error) {
       alert("Failed to login. Please try again");
       closeModal(loginModal, 'login-card');

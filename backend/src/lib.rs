@@ -2,6 +2,7 @@ use std::net::TcpListener;
 pub mod api;
 pub mod domain;
 pub mod persistence;
+pub mod utils;
 pub mod view;
 use actix_cors::Cors;
 use actix_session::SessionMiddleware;
@@ -13,6 +14,7 @@ use actix_web::{
     web,
 };
 use sqlx::PgPool;
+use tracing_actix_web::TracingLogger;
 
 use crate::api::{route, session::PgSessionStore};
 
@@ -34,6 +36,7 @@ pub async fn run(
             .max_age(3600);
         App::new()
             .app_data(pool_data.clone())
+            .wrap(TracingLogger::default())
             .wrap(
                 SessionMiddleware::builder(store.clone(), signing_key.clone())
                     .cookie_http_only(true)

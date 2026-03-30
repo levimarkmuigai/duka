@@ -1,10 +1,12 @@
 use std::net::TcpListener;
 
-use backend::{persistence::db::get_pool, run};
+use backend::{persistence::db::get_pool, run, utils::telemetry::init_telemetry};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
+
+    init_telemetry();
 
     let lst = TcpListener::bind("127.0.0.1:8000")?;
 
@@ -13,6 +15,13 @@ async fn main() -> std::io::Result<()> {
     let db_pool = get_pool()
         .await
         .expect("FAILED TO CONNECT TO DATABASE ON STARTUP");
+
+    sqlx::migrate!()
+        .run(&db_pool)
+        .await
+        .expect("MIGRATION FAILED");
+
+    tracing::info!("Running database migrations...");
 
     run(lst, db_pool, secret_key).await?.await
 }

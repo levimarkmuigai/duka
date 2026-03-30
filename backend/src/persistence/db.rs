@@ -11,7 +11,5 @@ pub async fn get_pool() -> Result<PgPool, sqlx::Error> {
         .idle_timeout(Duration::from_secs(60 * 10))
         .max_lifetime(Duration::from_secs(60 * 30))
         .connect_lazy(&database_url)?;
-
-    sqlx::migrate!().run(&pool).await.expect("MIGRARION FAILED");
     Ok(pool)
 }

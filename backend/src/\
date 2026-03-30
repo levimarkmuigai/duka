@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpResponse, http::header::LOCATION, web};
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use tracing::instrument;
 
