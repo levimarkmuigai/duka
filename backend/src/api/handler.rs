@@ -25,10 +25,10 @@ pub async fn register_merchant(payload: web::Json<AuthPayload>) -> Result<HttpRe
     let email = auth_payload.email;
     let password = auth_payload.password;
 
-    let merchant = Merchant::new(id, email, password)?;
+    let merchant = Merchant::new(id, email, &password)?;
 
     let pool = get_pool().await?;
-    create_merchent::create_merchent(pool, &merchant).await?;
+    create_merchent::create_merchent(&pool, &merchant).await?;
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "success",
         "message": "Registration successful",

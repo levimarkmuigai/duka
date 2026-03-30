@@ -39,7 +39,7 @@ pub enum PasswordError {
 }
 
 impl Password {
-    fn hash(p: String) -> Result<String, argon2::password_hash::Error> {
+    pub fn hash(p: &str) -> Result<String, argon2::password_hash::Error> {
         let salt = SaltString::generate(&mut OsRng);
 
         let argon2 = Argon2::default();
@@ -70,7 +70,7 @@ pub struct Merchant {
 }
 
 impl Merchant {
-    pub fn new(id: Uuid, email: String, password: String) -> Result<Self, PasswordError> {
+    pub fn new(id: Uuid, email: String, password: &str) -> Result<Self, PasswordError> {
         let hashed_password = Password::hash(password)?;
 
         Ok(Self {
