@@ -1,5 +1,6 @@
 use actix_web::{HttpResponse, web};
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::{
@@ -18,7 +19,10 @@ pub async fn healthcheck() -> HttpResponse {
         merchant_email = %payload.email
     )
 )]
-pub async fn register_merchant(payload: web::Json<AuthPayload>) -> Result<HttpResponse, Errors> {
+pub async fn register_user(
+    payload: web::Json<AuthPayload>,
+    pool: web::Data<PgPool>,
+) -> Result<HttpResponse, Errors> {
     let auth_payload = payload.into_inner();
 
     let id = Id::id();
@@ -26,8 +30,6 @@ pub async fn register_merchant(payload: web::Json<AuthPayload>) -> Result<HttpRe
     let password = auth_payload.password;
 
     let merchant = Merchant::new(id, email, &password)?;
-
-    let pool = get_pool().await?;
     create_merchent::create_merchent(&pool, &merchant).await?;
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "success",
