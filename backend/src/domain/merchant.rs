@@ -1,3 +1,4 @@
+use sqlx::prelude::FromRow;
 use thiserror::Error;
 
 use argon2::{
@@ -7,7 +8,8 @@ use argon2::{
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, FromRow, PartialEq, sqlx::Type)]
+#[sqlx(transparent)]
 pub struct Id(Uuid);
 
 impl Id {
@@ -26,7 +28,8 @@ impl From<Uuid> for Id {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, FromRow, PartialEq, sqlx::Type)]
+#[sqlx(transparent)]
 pub struct Password(String);
 
 #[derive(Error, Debug)]
@@ -62,7 +65,7 @@ impl TryFrom<String> for Password {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, FromRow, PartialEq)]
 pub struct Merchant {
     pub id: Id,
     pub email: String,

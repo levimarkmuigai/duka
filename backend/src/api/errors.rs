@@ -12,6 +12,9 @@ pub enum Errors {
     #[error("Error occured while processing a password")]
     Password(#[from] PasswordError),
 
+    #[error("Session error")]
+    SessionError(#[from] actix_session::SessionInsertError),
+
     #[error("Failed to hash password")]
     Hashing(#[from] argon2::password_hash::Error),
 }
@@ -22,6 +25,7 @@ impl ResponseError for Errors {
             Errors::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Errors::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Errors::Hashing(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Errors::SessionError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 

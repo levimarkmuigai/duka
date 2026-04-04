@@ -74,3 +74,170 @@ async fn register_user_returns_400_for_invalid_json(pool: PgPool) {
         "The API did not fail with a 400 Bad Request when payload was missing and email"
     );
 }
+
+#[sqlx::test]
+async fn login_user_returns_200_for_valid_json(pool: PgPool) {
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(pool))
+            .configure(route::routes),
+    )
+    .await;
+
+    let user = serde_json::json!({
+        "email":  "login@test.com",
+        "password": "securepassword"
+    });
+
+    let req1 = test::TestRequest::post()
+        .uri("/api/register_user")
+        .set_json(&user)
+        .to_request();
+
+    let setup_res = test::call_service(&app, req1).await;
+    assert!(setup_res.status().is_success(), "Failed to register user");
+
+    let auth_data = serde_json::json!({
+        "email": "login@test.com",
+        "password": "securepassword"
+    });
+
+    let req = test::TestRequest::post()
+        .uri("/api/login")
+        .set_json(&auth_data)
+        .to_request();
+
+    let response = test::call_service(&app, req).await;
+
+    assert_eq!(
+        response.status().as_u16(),
+        200,
+        "Login failed and API did not return a 200 OK"
+    );
+
+    let set_cookie_header = response.headers().get("set-cookie");
+    assert!(
+        set_cookie_header.is_some(),
+        "The API retur 200 OK, but no session cookie is set in the headers!"
+    );
+}
+
+#[sqlx::test]
+async fn login_returns_401_for_invalid_password(pool: PgPool) {
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .configure(route::routes),
+    )
+    .await;
+
+    let user = serde_json::json!({
+        "email": "user@gmail.com",
+        "password": "securepassword"
+    });
+
+    let request = test::TestRequest::post()
+        .uri("/api/register_user")
+        .set_json(&user)
+        .to_request();
+
+    let setup_res = test::call_service(&app, request).await;
+    assert!(setup_res.status().is_success(), "Failed to register user");
+    let auth_payload = serde_json::json!({
+        "email": "user@gmail.com",
+        "password": "invalidpassword"
+    });
+
+    let req = test::TestRequest::post()
+        .uri("/api/login")
+        .set_json(&auth_payload)
+        .to_request();
+
+    let response = test::call_service(&app, req).await;
+
+    assert_eq!(
+        response.status().as_u16(),
+        401,
+        "The API did not return a 401 Unauthorized when an invalid password was given."
+    );
+}
+
+#[sqlx::test]
+async fn login_returns_401_for_invalid_email(pool: PgPool) {
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .configure(route::routes),
+    )
+    .await;
+
+    let user = serde_json::json!({
+        "email": "user@gmail.com",
+        "password": "securepassword"
+    });
+
+    let request = test::TestRequest::post()
+        .uri("/api/register_user")
+        .set_json(&user)
+        .to_request();
+
+    let setup_res = test::call_service(&app, request).await;
+    assert!(setup_res.status().is_success(), "Failed to register user");
+    let auth_payload = serde_json::json!({
+        "email": "invaild@email.com",
+        "password": "securepassword"
+    });
+
+    let req = test::TestRequest::post()
+        .uri("/api/login")
+        .set_json(&auth_payload)
+        .to_request();
+
+    let response = test::call_service(&app, req).await;
+
+    assert_eq!(
+        response.status().as_u16(),
+        401,
+        "The API did not return a 401 Unauthorized when an invalid email was given."
+    );
+}
+
+#[sqlx::test]
+async fn login_returns_400_for_invalid_json(pool: PgPool) {
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .configure(route::routes),
+    )
+    .await;
+
+    let user = serde_json::json!({
+        "email": "user@gmail.com",
+        "password": "securepassword"
+    });
+
+    let request = test::TestRequest::post()
+        .uri("/api/register_user")
+        .set_json(&user)
+        .to_request();
+
+    let setup_res = test::call_service(&app, request).await;
+    assert!(setup_res.status().is_success(), "Failed to register user");
+
+    let auth_payload = serde_json::json!({
+        "email": "invaild@email.com"
+    });
+
+    let req = test::TestRequest::post()
+        .uri("/api/login")
+        .set_json(&auth_payload)
+        .to_request();
+
+    let response = test::call_service(&app, req).await;
+
+    assert_eq!(
+        response.status().as_u16(),
+        400,
+        "The API did not return a 400 Bad Reqeuest when an email was missing."
+    );
+}

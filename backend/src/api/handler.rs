@@ -1,3 +1,4 @@
+use actix_session::Session;
 use actix_web::{HttpResponse, web};
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use sqlx::PgPool;
@@ -6,7 +7,7 @@ use tracing::instrument;
 use crate::{
     api::errors::Errors,
     domain::merchant::{AuthPayload, Id, Merchant},
-    persistence::{create_merchent, db::get_pool, fetch::find_password_by_email},
+    persistence::{create_merchent, fetch::find_merchant_by_email},
 };
 pub async fn healthcheck() -> HttpResponse {
     HttpResponse::Ok().finish()
@@ -14,7 +15,7 @@ pub async fn healthcheck() -> HttpResponse {
 
 #[instrument(
     name = "register_merchant_handler",
-    skip(payload),
+    skip(payload, pool),
     fields(
         merchant_email = %payload.email
     )
@@ -40,19 +41,21 @@ pub async fn register_user(
 
 #[instrument(
     name = "login_handler"
-    skip(payload)
+    skip(payload,sessions, pool)
     fields(
         request_email = %payload.email
     )
 )]
-pub async fn login(payload: web::Json<AuthPayload>) -> Result<HttpResponse, Errors> {
+pub async fn login(
+    payload: web::Json<AuthPayload>,
+    pool: web::Data<PgPool>,
+    sessions: Session,
+) -> Result<HttpResponse, Errors> {
     let auth_payload = payload.into_inner();
+    let result = find_merchant_by_email(&pool, &auth_payload.email).await?;
 
-    let pool = get_pool().await?;
-    let password = find_password_by_email(&pool, &auth_payload.email).await?;
-
-    if let Some(db_password) = password {
-        let hash = PasswordHash::new(&db_password)?;
+    if let Some(merchant) = result {
+        let hash = PasswordHash::new(merchant.password.value())?;
 
         if Argon2::default()
             .verify_password(auth_payload.password.as_bytes(), &hash)
@@ -63,6 +66,8 @@ pub async fn login(payload: web::Json<AuthPayload>) -> Result<HttpResponse, Erro
                 "redirect": "/admin/dashboard"
             })));
         }
+
+        sessions.insert("user_id", merchant.id.value())?;
     };
 
     Ok(HttpResponse::Unauthorized().json(serde_json::json!({
