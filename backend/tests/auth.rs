@@ -1,5 +1,6 @@
-use actix_web::{App, test, web};
-use backend::api::route;
+use actix_session::SessionMiddleware;
+use actix_web::{App, cookie::Key, test, web};
+use backend::api::{route, session::PgSessionStore};
 use sqlx::PgPool;
 
 #[sqlx::test]
@@ -77,9 +78,12 @@ async fn register_user_returns_400_for_invalid_json(pool: PgPool) {
 
 #[sqlx::test]
 async fn login_user_returns_200_for_valid_json(pool: PgPool) {
+    let store = PgSessionStore::new(pool.clone());
+    let key = Key::generate();
     let app = test::init_service(
         App::new()
             .app_data(web::Data::new(pool))
+            .wrap(SessionMiddleware::new(store, key))
             .configure(route::routes),
     )
     .await;

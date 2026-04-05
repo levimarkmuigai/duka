@@ -61,13 +61,12 @@ pub async fn login(
             .verify_password(auth_payload.password.as_bytes(), &hash)
             .is_ok()
         {
+            sessions.insert("user_id", merchant.id.value())?;
             return Ok(HttpResponse::Ok().json(serde_json::json!({
                 "status": "success",
                 "redirect": "/admin/dashboard"
             })));
         }
-
-        sessions.insert("user_id", merchant.id.value())?;
     };
 
     Ok(HttpResponse::Unauthorized().json(serde_json::json!({
