@@ -89,3 +89,46 @@ pub struct AuthPayload {
     pub email: String,
     pub password: String,
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_passowrd_hashing_on_plain_test() {
+        let plain_text = "secure_password_123!";
+        let hashed_result = Password::hash(plain_text).expect("Hashing Failed");
+
+        assert_ne!(
+            hashed_result, plain_text,
+            "Hashing resulted to a plain text"
+        );
+
+        assert!(
+            hashed_result.starts_with("$argon2id$"),
+            "Hashing did not use argon2id algorithm"
+        );
+    }
+
+    #[test]
+    fn test_merchant_creation_hashes_password() {
+        let id = Id::id();
+        let email = "founder@gmail.com".to_string();
+        let password = "Secure_passowrd!123";
+
+        let merchant =
+            Merchant::new(id, email.clone(), password).expect("Merchant creation failed");
+
+        assert_eq!(merchant.email, email);
+
+        assert_ne!(
+            merchant.password.value(),
+            password,
+            "Merchant password is a plain text!"
+        );
+
+        assert!(
+            merchant.password.value().starts_with("$argon2id$"),
+            "The hashed password did not use argon2id algorithm"
+        );
+    }
+}
